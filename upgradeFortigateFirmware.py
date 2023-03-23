@@ -78,6 +78,23 @@ def parse_version_from_filename(filename):
     else:
         return None
 
+def save_configuration(fgt_name, fw_ip, api_token):
+    # Retrieve the configuration file from the FortiGate device and save it to a local file
+    url = f"https://{fw_ip}/api/v2/monitor/system/config/backup"
+    headers = {"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"}
+    data = {
+        "destination": "file",
+        "scope": "global",
+    }
+    response = response = requests.post(url, headers=headers, json=data, verify=False)
+    if response.status_code != 200:
+        print(f"Error: unable to retrieve configuration file from FortiGate {fgt_name} at {fw_ip}")
+        return None
+    filename = f"{fgt_name}-{fw_ip}-config-backup.conf"
+    with open(filename, "w") as f:
+        f.write(response.text)
+    print(f"Configuration file saved to {filename}")
+
 def main():
     print("FortiGate firewall firmware upgrade script\n")
     filename = input("Enter the filename of the firmware image to upgrade to: ")
@@ -91,7 +108,7 @@ def main():
         reader = csv.DictReader(csvfile)
         for row in reader:
             fgt_name = row['fgt_name']
-            fw_ip = row['fgt_ip']
+            fw_ip = row['fw_ip']
             api_token = row['api_token']
             if not (fgt_name and fw_ip and api_token):
                 print(f"Error: Missing information for firewall '{fgt_name}' in firewalls.csv")
@@ -113,6 +130,9 @@ def main():
                     break
             
             if version_found:
+                # Save current global configuration                                
+                save_configuration(fgt_name, fw_ip, api_token)
+                
                 print(f"\nFirmware upgrade started for {fgt_name}. Filename: {filename}")
                 
                 # Upgrade firmware using the given filename
