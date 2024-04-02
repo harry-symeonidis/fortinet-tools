@@ -1,7 +1,7 @@
 '''
 Basic FortiGate SD-WAN configuration
 ====================================
-Written by Harry Symeonidis, 02 Feb 2024
+Written by Harry Symeonidis
 Tested on FortiOS v7.2 and v7.4
 
 USE AT YOUR OWN RISK!
@@ -20,6 +20,8 @@ Set the API_KEY environment variable to your REST API admin key. For example in 
 import os
 import requests
 import ipaddress
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Function to validate IPv4 address
 
